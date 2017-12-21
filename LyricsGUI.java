@@ -1,11 +1,14 @@
-package com.lyrics;
+package Lyrics;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,7 +17,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import java.util.Properties;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -29,11 +32,17 @@ public class LyricsGUI {
 	 JTextArea area;
 	 JScrollPane scroll;
 	 JFrame frame;
-	public static Connection getConnection() throws Exception {
-			String driver = "com.mysql.jdbc.Driver";
-			String url = "jdbc:mysql://localhost/lyrics";
-			String username = "root";
-			String password = "root";
+	public static Connection getConnection() throws Exception,IOException {
+		File file = new File("config.properties");
+		FileInputStream fileInput = new FileInputStream(file);
+		//InputStream in = new FileInputStream(System.getProperty("lyric.properties"));
+		Properties property=new Properties();
+		property.load(fileInput);
+	      
+	  String  username=property.getProperty("username");  
+	   String password= property.getProperty("password");
+	   String  url=property.getProperty("url");  
+	   String driver= property.getProperty("driver");
 
 			Class.forName(driver);
 			Connection conn = DriverManager.getConnection(url, username, password);
@@ -67,7 +76,7 @@ public class LyricsGUI {
 		    	          String path=fieldPath.getText();  
 		    	            int count=Integer.parseInt(fieldCount.getText());
 		    	            area.setText(path+" "+count);
-		    	           LyricsGUI gui=new LyricsGUI();
+		    	           //LyricsGUI gui=new LyricsGUI();
 		    	            pathName(path,count);
 		    	          	}
 		    				});  
@@ -91,7 +100,7 @@ public class LyricsGUI {
  		String lang = null;
  		String album = null;
  		String releaseDate = null;
- 		int year = 0;// lang_id = 0, year_id = 0, movie_id = 0;
+ 		int year = 0;
  		StringBuilder lyricContent;
 
  		try {
@@ -144,6 +153,9 @@ public class LyricsGUI {
 	private static void populateLyricContent(String writer, String lyricContent, String album, String song,
     			Timestamp releaseDate) {
     		// TODO Auto-generated method stub
+		boolean exist=movieExist(album,releaseDate);
+		if(!exist)
+		{
     		PreparedStatement pstmt = null;
     		Connection conn = null;
     		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -166,7 +178,7 @@ public class LyricsGUI {
 
     			e.printStackTrace();
     		}
-
+		}
     	}
 	private static int getMovieId(String album, Timestamp releaseDate) {
     		// TODO Auto-generated method stub
@@ -195,6 +207,9 @@ public class LyricsGUI {
 
 	private static void populateMovie(int lang_id, int year_id, String album, Timestamp releaseDate) {
 		// TODO Auto-generated method stub
+		boolean exist=movieExist(album,releaseDate);
+		if(!exist)
+		{
 		PreparedStatement pstmt = null;
 		Connection conn = null;
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -215,7 +230,48 @@ public class LyricsGUI {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		}
+		else {
+			System.out.println("existed");
+		}
+		}
+	
+	
+
+	private static boolean movieExist(String album, Timestamp releaseDate) {
+		// TODO Auto-generated method stub
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		ResultSet rs=null;
+		int id = 0;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement(
+					"select id from l_movie where movie_name=? and movie_release_date=?");
+			pstmt.setString(1, album);
+			pstmt.setTimestamp(2,releaseDate );
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				id = (int) rs.getInt("id");
+			    }
+				if(id>1)
+				{
+					return true;
+				}
+		
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+		
 	}
+
 
 	private static Timestamp getTimeStamp(String releaseDate) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
@@ -284,7 +340,7 @@ public class LyricsGUI {
 		    frame.getContentPane().setLayout(null);
 		    frame.getContentPane().add(fieldPath);
 		    JButton btnBrowse = new JButton("Browse");
-		    btnBrowse.setBounds(300,50, 100, 20);
+		    btnBrowse.setBounds(300,50, 50, 20);
 		    frame.getContentPane().add(btnBrowse);
 		         
 		    btnBrowse.addActionListener(new ActionListener() {
