@@ -154,9 +154,7 @@ public class LyricsGUI {
     			Timestamp releaseDate) {
     		// TODO Auto-generated method stub
 		boolean exist=movieExist(album,releaseDate);
-		if(!exist)
-		{
-    		PreparedStatement pstmt = null;
+			PreparedStatement pstmt = null;
     		Connection conn = null;
     		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     		try {
@@ -179,7 +177,6 @@ public class LyricsGUI {
     			e.printStackTrace();
     		}
 		}
-    	}
 	private static int getMovieId(String album, Timestamp releaseDate) {
     		// TODO Auto-generated method stub
     		PreparedStatement pstmt = null;
