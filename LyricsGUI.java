@@ -251,7 +251,7 @@ public class LyricsGUI {
 			while (rs.next()) {
 				id = (int) rs.getInt("id");
 			    }
-				if(id>1)
+				if(id>0)
 				{
 					return true;
 				}
