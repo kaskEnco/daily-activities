@@ -1,6 +1,8 @@
 package Lyrics;
 
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -22,16 +24,21 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 
 public class LyricsGUI {
 	 JLabel lablePath,lableCount; 
 	 JTextField fieldPath,fieldCount;
-	 JTextArea area;
+	 static JTextArea area;
 	 JScrollPane scroll;
 	 JFrame frame;
+	 
 	public static Connection getConnection() throws Exception,IOException {
 		File file = new File("config.properties");
 		FileInputStream fileInput = new FileInputStream(file);
@@ -68,14 +75,18 @@ public class LyricsGUI {
 		    JButton button=new JButton("Upload");  
 		    button.setBounds(75,150,100,30);  
 		    
-		    area=new JTextArea(); 
-		    area.setBounds(25,200, 500,200);  
-		  
+		    area=new JTextArea(10,20); 
+		    area.setBounds(25,250,400,400); 
+		    area.setEditable(false);
+		    
+		    scroll=new JScrollPane(area,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		    frame.setLayout(new FlowLayout());
+		    
 		    button.addActionListener(new ActionListener(){  
 		    	public void actionPerformed(ActionEvent e){  
 		    	          String path=fieldPath.getText();  
 		    	            int count=Integer.parseInt(fieldCount.getText());
-		    	            area.setText(path+" "+count);
+		    	           // area.setText(path+" "+count);
 		    	           //LyricsGUI gui=new LyricsGUI();
 		    	            pathName(path,count);
 		    	          	}
@@ -86,11 +97,10 @@ public class LyricsGUI {
 		    frame.add(lableCount); 
 		    frame.add(fieldCount); 
 	        frame.add(area);	   
-		    frame.add(button); 
+		    frame.add(button);
 		    frame.setSize(800,500);  
 		    frame.setLayout(null);
-		    frame.setVisible(true);
-		    initialize();
+		    browse();
 		    }
 	protected void pathName(String path,int count) {
 			BufferedReader br = null;
@@ -148,12 +158,14 @@ public class LyricsGUI {
  		int lang_id = getLanguageId(lang);
  		int year_id = getYearId(year);
  		populateMovie(lang_id, year_id, album, getTimeStamp(releaseDate));
- 		populateLyricContent(writer, lyricContent, album, song, getTimeStamp(releaseDate));
+ 		populateLyricContent(writer, lyricContent, album, song, getTimeStamp(releaseDate), area);
  	}
 	private static void populateLyricContent(String writer, String lyricContent, String album, String song,
-    			Timestamp releaseDate) {
+    			Timestamp releaseDate,JTextArea area) {
     		// TODO Auto-generated method stub
-		boolean exist=movieExist(album,releaseDate);
+		boolean exist=lyricExist(writer,album,song,releaseDate);
+		if(!exist)
+		{
 			PreparedStatement pstmt = null;
     		Connection conn = null;
     		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -170,6 +182,7 @@ public class LyricsGUI {
     			pstmt.setTimestamp(6, timestamp);
     			pstmt.executeUpdate();
     			System.out.println("Lyrics Table populated");
+    			area.setText(album+"  "+song+" "+"populated");
     			//conn.close();
     		} catch (Exception e) {
     			// TODO Auto-generated catch block
@@ -177,6 +190,44 @@ public class LyricsGUI {
     			e.printStackTrace();
     		}
 		}
+		else {
+			System.out.println("song exist");
+			 area.setText(album+"  "+song+" "+"existed");
+		}
+	}
+	private static boolean lyricExist(String writer, String album,String song,Timestamp releaseDate) {
+		// TODO Auto-generated method stub
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		int id=0;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement("select id from lyrics.l_lyrics where writer_name=? and movie_id=? and lyric_title=?");
+			pstmt.setString(1,writer);
+			pstmt.setInt(2, getMovieId(album,releaseDate));
+			pstmt.setString(3, song);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				id = (int) rs.getInt(1);
+			}
+			if(id>0)
+			{
+				return true;
+			}
+	
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+
+
 	private static int getMovieId(String album, Timestamp releaseDate) {
     		// TODO Auto-generated method stub
     		PreparedStatement pstmt = null;
@@ -331,7 +382,7 @@ public class LyricsGUI {
 		}
 		return langId;
 	}
-	 private void initialize() {
+	 private void browse() {
 		
 		    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		    frame.getContentPane().setLayout(null);
@@ -347,12 +398,9 @@ public class LyricsGUI {
 		        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		 
 		        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		 
-		        fileChooser.setAcceptAllFileFilterUsed(false);
-		 
-		        int rVal = fileChooser.showOpenDialog(null);
-		        if (rVal == JFileChooser.APPROVE_OPTION) {
-		        	fieldPath.setText(fileChooser.getSelectedFile().toString());
+		        int openDialogBox = fileChooser.showOpenDialog(null);
+		        if (openDialogBox == JFileChooser.APPROVE_OPTION) {
+		        fieldPath.setText(fileChooser.getSelectedFile().toString());
 		        }
 		      }
 		    });
