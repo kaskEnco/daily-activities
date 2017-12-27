@@ -1,7 +1,6 @@
 package Lyrics;
 
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,7 +23,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class LyricsGUI {
@@ -37,7 +35,6 @@ public class LyricsGUI {
 	public static Connection getConnection() throws Exception, IOException {
 		File file = new File("config.properties");
 		FileInputStream fileInput = new FileInputStream(file);
-		// InputStream in = new FileInputStream(System.getProperty("lyric.properties"));
 		Properties property = new Properties();
 		property.load(fileInput);
 
@@ -70,7 +67,7 @@ public class LyricsGUI {
 		button.setBounds(75, 150, 100, 30);
 
 		area = new TextArea();
-		area.setBounds(25, 250, 400, 400);
+		area.setBounds(25, 200, 400, 400);
 
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -86,7 +83,7 @@ public class LyricsGUI {
 		frame.add(fieldCount);
 		frame.add(area);
 		frame.add(button);
-		frame.setSize(800, 500);
+		frame.setSize(800, 700);
 		frame.setLayout(null);
 		browse();
 	}
@@ -170,13 +167,8 @@ public class LyricsGUI {
 				pstmt.setTimestamp(6, timestamp);
 				pstmt.executeUpdate();
 				System.out.println("Lyrics Table populated");
-				StringBuilder builder = new StringBuilder();
-				area.setText(album + "  " + song + " " + "populated");
-				String output = area.getText();
-				area.append(output);
-				// builder.append(output);
-				// area.setText(output);
-				// conn.close();
+				area.append(album + "		  " + song + "	 	" + "populated\n");
+				conn.close();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 
@@ -184,7 +176,7 @@ public class LyricsGUI {
 			}
 		} else {
 			System.out.println("song exist");
-			area.setText(album + "  " + song + " " + "existed");
+			area.append(album + " 		 " + song + " 		" + "existed\n");
 		}
 	}
 
@@ -208,6 +200,7 @@ public class LyricsGUI {
 			if (id > 0) {
 				return true;
 			}
+			conn.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -236,7 +229,7 @@ public class LyricsGUI {
 				movieId = (int) rs.getInt(1);
 			}
 			System.out.println("Movie Table populated");
-			// conn.close();
+			conn.close();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -264,7 +257,7 @@ public class LyricsGUI {
 				pstmt.setString(5, album);
 				pstmt.setTimestamp(6, releaseDate);
 				pstmt.executeUpdate();
-				// conn.close();
+				conn.close();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -292,6 +285,7 @@ public class LyricsGUI {
 			if (id > 0) {
 				return true;
 			}
+			conn.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -335,7 +329,7 @@ public class LyricsGUI {
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
 				yearId = (int) rs.getInt("id");
-				// conn.close();
+				conn.close();
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -358,8 +352,8 @@ public class LyricsGUI {
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
 				langId = (int) rs.getInt("id");
-				// conn.close();
 			}
+			conn.close();
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -393,9 +387,7 @@ public class LyricsGUI {
 
 	public static void main(String[] args) {
 		new LyricsGUI();
-		// GUI.iteratePath(path, count);
 		EventQueue.invokeLater(new Runnable() {
-
 			public void run() {
 				try {
 					LyricsGUI gui = new LyricsGUI();
